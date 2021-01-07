@@ -49,6 +49,34 @@ eksctl create cluster \
 ```
 
 Desse maneira, o Cluster é criado e o autoscalling group é configurado nas zonas passadas por parâmetro, com os nós do tipo t2.micro. 
+### Pod AutoScaler
+
+Instale o metrics server:
+
+`kubectl apply -f k8s/metrics.yaml`
+
+No arquivo de deployment há uma seção que específica o comportamento do Pod Auto Scalling:
+
+```yaml
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ttc-app
+spec:
+  maxReplicas: 5
+  minReplicas: 1
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ttc-app
+```
 
 ### Ativar iamserviceaccount
 
@@ -60,7 +88,8 @@ eksctl utils associate-iam-oidc-provider \
     --approve
 ```
 
-### Auto-Scaler
+
+### Cluster Nodes Auto-Scaler
 
 ```sh
 kubectl -f k8s/cluster-autoscaler.yaml
